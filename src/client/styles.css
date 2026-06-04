@@ -1,0 +1,278 @@
+:root {
+  color-scheme: dark;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #050608;
+  color: #f5f7fb;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: #050608;
+  overflow: hidden;
+}
+
+/* Lock the whole dashboard to a single viewport so it always fits a 16:9 screen. */
+.dashboard {
+  height: 100vh;
+  width: 100vw;
+  padding: clamp(14px, 2.2vh, 30px);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: clamp(12px, 1.8vh, 24px);
+  overflow: hidden;
+}
+
+.hero {
+  border: 1px solid #242a35;
+  border-radius: 8px;
+  padding: clamp(16px, 2.4vh, 32px) clamp(20px, 2.6vw, 44px);
+  background: #0b0f16;
+  display: grid;
+  gap: clamp(6px, 0.9vh, 12px);
+  align-content: start;
+}
+
+.usage-summary {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: clamp(16px, 2vw, 32px);
+}
+
+.usage-number {
+  font-size: clamp(48px, 13vh, 150px);
+  line-height: 0.9;
+  font-weight: 800;
+  letter-spacing: 0;
+  min-width: 0;
+}
+
+.muted {
+  color: #717c8d;
+  font-weight: 700;
+}
+
+.usage-label {
+  color: #c8d2e2;
+  font-size: clamp(16px, 2.1vh, 28px);
+  text-align: right;
+  padding-bottom: clamp(4px, 0.6vh, 10px);
+  flex: 0 0 auto;
+}
+
+.bar-frame {
+  margin-top: 10px;
+  height: clamp(34px, 6vh, 72px);
+  overflow: hidden;
+  border: 1px solid #344052;
+  border-radius: 8px;
+  background: #151b25;
+}
+
+.bar-fill {
+  height: 100%;
+  min-width: 2px;
+  background: linear-gradient(90deg, #39d98a, #f8d66d);
+}
+
+.hero-footer,
+.model-row-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.hero-footer > div {
+  min-width: 0;
+}
+
+.metric-value {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: clamp(22px, 3.4vh, 46px);
+  font-weight: 750;
+  line-height: 1.05;
+}
+
+.metric-label {
+  display: block;
+  margin-top: 4px;
+  color: #8d99ab;
+  font-size: clamp(12px, 1.5vh, 20px);
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+/* Lower grid fills all remaining vertical space below the hero. */
+.lower-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.75fr);
+  gap: clamp(12px, 1.6vw, 24px);
+  min-height: 0;
+}
+
+.panel {
+  border: 1px solid #222936;
+  border-radius: 8px;
+  background: #0b0f16;
+  padding: clamp(14px, 2vh, 28px);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-heading {
+  color: #d7deeb;
+  font-size: clamp(16px, 2vh, 28px);
+  font-weight: 700;
+  margin-bottom: clamp(12px, 1.6vh, 24px);
+  flex: 0 0 auto;
+}
+
+/* Chart flexes to fill the panel height instead of a fixed height. */
+.daily-chart {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18px, 1fr));
+  gap: clamp(5px, 0.7vw, 12px);
+  align-items: end;
+}
+
+.day {
+  min-width: 0;
+  height: 100%;
+  display: grid;
+  grid-template-rows: 1fr auto auto;
+  gap: 6px;
+  text-align: center;
+}
+
+.day-bar-wrap {
+  min-height: 0;
+  display: flex;
+  align-items: end;
+}
+
+.day-bar {
+  width: 100%;
+  border-radius: 6px 6px 2px 2px;
+  background: #5aa9ff;
+}
+
+.day-value,
+.day-label {
+  overflow: hidden;
+  color: #8f9bad;
+  font-size: clamp(9px, 1.1vh, 15px);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Model list fills the panel, while each row keeps its own label and bar grouped tightly. */
+.model-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: clamp(10px, 1.6vh, 20px);
+  overflow: hidden;
+}
+
+.model-row {
+  min-height: 0;
+  display: grid;
+  gap: clamp(2px, 0.35vh, 6px);
+}
+
+.model-row-top {
+  color: #dce4f2;
+  font-size: clamp(14px, 1.8vh, 22px);
+  font-weight: 650;
+}
+
+.model-row-top span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.model-track {
+  height: clamp(4px, 0.7vh, 8px);
+  overflow: hidden;
+  border-radius: 999px;
+  background: #18202c;
+}
+
+.model-fill {
+  height: 100%;
+  min-width: 2px;
+  background: #f2767a;
+}
+
+.notice,
+.empty {
+  padding: 10px 14px;
+  border: 1px solid #384658;
+  border-radius: 8px;
+  color: #d9e2ef;
+  background: #111824;
+  font-size: clamp(13px, 1.4vh, 18px);
+}
+
+.notice.error {
+  border-color: #7c2d34;
+  background: #241014;
+  color: #ffd7dc;
+}
+
+.error-state {
+  height: 100%;
+  align-content: center;
+}
+
+@media (max-width: 900px) {
+  body {
+    overflow: auto;
+  }
+
+  .dashboard {
+    height: auto;
+    min-height: 100vh;
+    padding: 18px;
+    overflow: visible;
+  }
+
+  .lower-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .usage-summary {
+    display: grid;
+    gap: 6px;
+  }
+
+  .usage-label {
+    text-align: left;
+    padding-bottom: 0;
+  }
+
+  .usage-number {
+    font-size: clamp(48px, 16vw, 104px);
+  }
+}
