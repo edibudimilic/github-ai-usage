@@ -33,6 +33,16 @@ export interface DashboardUsage {
     credits: number;
     amountUsd: number;
   };
+  forecast?: {
+    projectedTotalCredits: number;
+    projectedAdditionalCredits: number;
+    projectedAdditionalAmountUsd: number;
+  };
+  comparison?: {
+    previousPeriodLabel: string;
+    previousTotalCredits: number;
+    percentChange: number;
+  };
   totals: {
     grossCredits: number;
     includedCredits: number;

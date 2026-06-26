@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeItems, resolveIncludedLimit } from './usageAggregator.js';
+import { compareWithPreviousPeriod, normalizeItems, projectMonthEndTotals, resolveIncludedLimit } from './usageAggregator.js';
 
 describe('usage aggregation helpers', () => {
   it('normalizes billing AI credit quantities', () => {
@@ -47,5 +47,35 @@ describe('usage aggregation helpers', () => {
     }, new Date('2026-06-04T00:00:00Z'));
 
     expect(limit).toEqual({ limit: 33000, source: 'derived' });
+  });
+
+  it('projects month-end totals from current pace', () => {
+    const forecast = projectMonthEndTotals(13000, 42, 10, 30, 33000);
+
+    expect(forecast).toEqual({
+      projectedTotalCredits: 39000,
+      projectedAdditionalCredits: 6000,
+      projectedAdditionalAmountUsd: 126
+    });
+  });
+
+  it('computes signed previous-period change', () => {
+    const comparison = compareWithPreviousPeriod(11800, 10000, 'May 2026');
+
+    expect(comparison).toEqual({
+      previousPeriodLabel: 'May 2026',
+      previousTotalCredits: 10000,
+      percentChange: 18
+    });
+  });
+
+  it('handles missing previous-period usage', () => {
+    const comparison = compareWithPreviousPeriod(2500, 0, 'May 2026');
+
+    expect(comparison).toEqual({
+      previousPeriodLabel: 'May 2026',
+      previousTotalCredits: 0,
+      percentChange: 100
+    });
   });
 });

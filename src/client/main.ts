@@ -57,6 +57,8 @@ function renderDashboard(usage: DashboardUsage): void {
           <span class="metric-value">${currencyFormatter.format(usage.additionalUsage.amountUsd)}</span>
           <span class="metric-label">additional usage</span>
         </div>
+        ${renderForecastMetric(usage)}
+        ${renderComparisonMetric(usage)}
       </div>
     </section>
     <section class="lower-grid">
@@ -90,6 +92,34 @@ function renderNotice(usage: DashboardUsage): string {
   }
 
   return '';
+}
+
+function renderForecastMetric(usage: DashboardUsage): string {
+  if (!usage.forecast) {
+    return '';
+  }
+
+  return `
+    <div title="Projected additional spend ${currencyFormatter.format(usage.forecast.projectedAdditionalAmountUsd)} by month end.">
+      <span class="metric-value">${formatCredits(usage.forecast.projectedTotalCredits)}</span>
+      <span class="metric-label">forecast</span>
+    </div>
+  `;
+}
+
+function renderComparisonMetric(usage: DashboardUsage): string {
+  if (!usage.comparison) {
+    return '';
+  }
+
+  const signedDelta = formatSignedPercent(usage.comparison.percentChange);
+
+  return `
+    <div title="${formatCredits(usage.comparison.previousTotalCredits)} credits at the same point in ${escapeHtml(usage.comparison.previousPeriodLabel)}.">
+      <span class="metric-value">${signedDelta}</span>
+      <span class="metric-label">vs previous month</span>
+    </div>
+  `;
 }
 
 function renderDailyBar(day: DailyUsagePoint, maxDaily: number): string {
@@ -131,6 +161,11 @@ function renderError(message: string): void {
 
 function formatCredits(value: number): string {
   return formatter.format(Math.round(value));
+}
+
+function formatSignedPercent(value: number): string {
+  const rounded = Math.round(value * 10) / 10;
+  return `${rounded > 0 ? '+' : ''}${new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 }).format(rounded)}%`;
 }
 
 function escapeHtml(value: string): string {

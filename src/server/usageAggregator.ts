@@ -22,19 +22,27 @@ export async function buildDashboardUsage(config: AppConfig, github: GitHubClien
   const year = now.getUTCFullYear();
   const month = now.getUTCMonth() + 1;
   const currentDay = now.getUTCDate();
+  const daysInCurrentMonth = getDaysInMonth(year, month);
+  const previousPeriod = getPreviousPeriod(year, month);
+  const previousComparisonDay = Math.min(currentDay, getDaysInMonth(previousPeriod.year, previousPeriod.month));
 
-  const [monthlyUsage, dailyUsage, billing] = await Promise.all([
+  const [monthlyUsage, dailyUsage, previousDailyUsage, billing] = await Promise.all([
     github.getAiCreditUsage({ year, month }),
     fetchDailyUsage(github, year, month, currentDay),
+    fetchDailyUsage(github, previousPeriod.year, previousPeriod.month, previousComparisonDay),
     github.getCopilotBilling().catch(() => null)
   ]);
 
   const source: UsageSource = config.GITHUB_ENTERPRISE ? 'enterprise' : 'organization';
   const monthlyItems = normalizeItems(monthlyUsage, year, month);
   const dailyItems = dailyUsage.flatMap((response, index) => normalizeItems(response, year, month, index + 1));
+  const previousDailyItems = previousDailyUsage.flatMap((response, index) => normalizeItems(response, previousPeriod.year, previousPeriod.month, index + 1));
   const limit = resolveIncludedLimit(config, billing, now);
   const totals = sumItems(monthlyItems);
+  const previousTotals = sumItems(previousDailyItems);
   const includedUsed = resolveIncludedUsed(totals.grossCredits, totals.includedCredits, limit.limit);
+  const forecast = projectMonthEndTotals(totals.grossCredits, totals.netAmountUsd, currentDay, daysInCurrentMonth, limit.limit);
+  const comparison = compareWithPreviousPeriod(totals.grossCredits, previousTotals.grossCredits, formatMonth(previousPeriod.year, previousPeriod.month));
   const warning = limit.source === 'unknown'
     ? 'Set INCLUDED_CREDITS_OVERRIDE to match the included-credit limit shown in GitHub.'
     : undefined;
@@ -58,6 +66,8 @@ export async function buildDashboardUsage(config: AppConfig, github: GitHubClien
       credits: roundCredits(totals.additionalCredits),
       amountUsd: roundCurrency(totals.netAmountUsd)
     },
+    forecast,
+    comparison,
     totals: {
       grossCredits: roundCredits(totals.grossCredits),
       includedCredits: roundCredits(totals.includedCredits),
@@ -157,6 +167,47 @@ function resolveIncludedUsed(grossCredits: number, includedCredits: number, limi
   return grossCredits;
 }
 
+export function projectMonthEndTotals(
+  currentGrossCredits: number,
+  currentNetAmountUsd: number,
+  elapsedDays: number,
+  daysInMonth: number,
+  includedCreditLimit: number
+): DashboardUsage['forecast'] {
+  if (elapsedDays <= 0 || daysInMonth <= 0) {
+    return {
+      projectedTotalCredits: 0,
+      projectedAdditionalCredits: 0,
+      projectedAdditionalAmountUsd: 0
+    };
+  }
+
+  const projectedTotalCredits = (currentGrossCredits / elapsedDays) * daysInMonth;
+  const projectedAdditionalAmountUsd = (currentNetAmountUsd / elapsedDays) * daysInMonth;
+
+  return {
+    projectedTotalCredits: roundCredits(projectedTotalCredits),
+    projectedAdditionalCredits: roundCredits(Math.max(0, projectedTotalCredits - includedCreditLimit)),
+    projectedAdditionalAmountUsd: roundCurrency(projectedAdditionalAmountUsd)
+  };
+}
+
+export function compareWithPreviousPeriod(
+  currentTotalCredits: number,
+  previousTotalCredits: number,
+  previousPeriodLabel: string
+): DashboardUsage['comparison'] {
+  const percentChange = previousTotalCredits > 0
+    ? ((currentTotalCredits - previousTotalCredits) / previousTotalCredits) * 100
+    : currentTotalCredits > 0 ? 100 : 0;
+
+  return {
+    previousPeriodLabel,
+    previousTotalCredits: roundCredits(previousTotalCredits),
+    percentChange: roundCredits(percentChange)
+  };
+}
+
 function sumItems(items: NormalizedUsageItem[]) {
   return items.reduce(
     (total, item) => ({
@@ -235,6 +286,18 @@ function creditsFromAmount(amount: number | undefined, pricePerCredit: number): 
 
 function toDateKey(year: number, month: number, day: number): string {
   return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+function getPreviousPeriod(year: number, month: number): { year: number; month: number } {
+  if (month === 1) {
+    return { year: year - 1, month: 12 };
+  }
+
+  return { year, month: month - 1 };
+}
+
+function getDaysInMonth(year: number, month: number): number {
+  return new Date(Date.UTC(year, month, 0)).getUTCDate();
 }
 
 function formatMonth(year: number, month: number): string {
