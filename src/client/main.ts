@@ -23,6 +23,7 @@ async function loadUsage(): Promise<void> {
 }
 
 function renderDashboard(usage: DashboardUsage): void {
+  const headlineCreditsUsed = usage.totals.grossCredits;
   const percent = Math.max(0, Math.min(100, usage.includedCredits.percent));
   const maxDaily = Math.max(1, ...usage.daily.map((day) => day.grossCredits));
   const maxModel = Math.max(1, ...usage.models.map((model) => model.grossCredits));
@@ -33,10 +34,10 @@ function renderDashboard(usage: DashboardUsage): void {
 
       <div class="usage-summary">
         <div class="usage-number">
-          <span>${formatCredits(usage.includedCredits.used)}</span>
+          <span>${formatCredits(headlineCreditsUsed)}</span>
           <span class="muted">/ ${formatCredits(usage.includedCredits.limit)}</span>
         </div>
-        <div class="usage-label">Included AI credits</div>
+        <div class="usage-label">AI credits used</div>
       </div>
 
       <div class="bar-frame" aria-label="${percent.toFixed(1)} percent of included credits used">
